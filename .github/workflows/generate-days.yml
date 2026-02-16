@@ -11,22 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Generate days.json
-        run: |
-          cd content
-          ls day-*.md | sort > temp.txt
-          echo "[" > days.json
-          while read line; do
-            echo "  \"$line\"," >> days.json
-          done < temp.txt
-          sed -i '$ s/,$//' days.json
-          echo "]" >> days.json
-          rm temp.txt
+     - name: Generate days.json
+  run: |
+    cd content
+    echo "[" > days.json
+    first=true
+    for file in $(ls day-*.md | sort); do
+      if [ "$first" = true ]; then
+        echo "  \"$file\"" >> days.json
+        first=false
+      else
+        echo "  ,\"$file\"" >> days.json
+      fi
+    done
+    echo "]" >> days.json
 
-      - name: Commit changes
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add content/days.json
-          git commit -m "Auto-update days.json" || echo "No changes"
-          git push
