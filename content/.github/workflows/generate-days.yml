@@ -1,0 +1,32 @@
+name: Generate days.json
+
+on:
+  push:
+    paths:
+      - 'content/*.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate days.json
+        run: |
+          cd content
+          ls day-*.md | sort > temp.txt
+          echo "[" > days.json
+          while read line; do
+            echo "  \"$line\"," >> days.json
+          done < temp.txt
+          sed -i '$ s/,$//' days.json
+          echo "]" >> days.json
+          rm temp.txt
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add content/days.json
+          git commit -m "Auto-update days.json" || echo "No changes"
+          git push
