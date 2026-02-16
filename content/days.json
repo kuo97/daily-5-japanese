@@ -1,5 +1,16 @@
-[
-  "day-001.md"
-  "day-002.md"
-  "day-003.md"
-]
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/content/days.json b/content/days.json
+index 06645746106b5320afce9dc0a1c9b2bdb88cb28f..2dd0f553acd643c08cb4966f1dcffacd9c34c19f 100644
+--- a/content/days.json
++++ b/content/days.json
+@@ -1,5 +1,5 @@
+ [
+-  "day-001.md"
+-  "day-002.md"
++  "day-001.md",
++  "day-002.md",
+   "day-003.md"
+ ]
+ 
+EOF
+)
