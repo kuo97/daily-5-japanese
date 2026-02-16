@@ -1,69 +1,48 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/.github/workflows/generate-days.yml b/.github/workflows/generate-days.yml
-index 1123b108390898ef808e856c1869fae9d5403d8d..293cc27b08bfb2954db0962334ac9cac33b4429a 100644
---- a/.github/workflows/generate-days.yml
-+++ b/.github/workflows/generate-days.yml
-@@ -1,37 +1,45 @@
- name: Generate days.json
- 
- on:
-   push:
-     paths:
--      - 'content/*.md'
-+      - "content/*.md"
-+
-+permissions:
-+  contents: write
- 
- jobs:
-   build:
-     runs-on: ubuntu-latest
- 
-     steps:
-       - name: Checkout repository
--        uses: actions/checkout@v3
-+        uses: actions/checkout@v4
- 
-       - name: Generate days.json
-         run: |
--          cd content
--          echo "[" > days.json
--          first=true
--          for file in $(ls day-*.md | sort); do
--            if [ "$first" = true ]; then
--              echo "  \"$file\"" >> days.json
--              first=false
--            else
--              echo "  ,\"$file\"" >> days.json
--            fi
--          done
--          echo "]" >> days.json
-+          python3 - <<'PY'
-+          import json
-+          from pathlib import Path
-+
-+          content_dir = Path("content")
-+          files = sorted(path.name for path in content_dir.glob("day-*.md"))
-+          (content_dir / "days.json").write_text(
-+              json.dumps(files, ensure_ascii=False, indent=2) + "\n",
-+              encoding="utf-8",
-+          )
-+          PY
- 
-       - name: Commit changes
-         run: |
-           git config user.name "github-actions"
-           git config user.email "actions@github.com"
-           git add content/days.json
--          git commit -m "Auto-update days.json" || echo "No changes"
-+
-+          if git diff --cached --quiet; then
-+            echo "No changes"
-+            exit 0
-+          fi
-+
-+          git commit -m "Auto-update days.json"
-           git push
- 
-EOF
-)
+name: Generate days.json
+
+on:
+  push:
+    paths:
+      - "content/*.md"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate days.json
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          content_dir = Path("content")
+          files = sorted(path.name for path in content_dir.glob("day-*.md"))
+
+          output = content_dir / "days.json"
+          output.write_text(
+              json.dumps(files, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add content/days.json
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "Auto-update days.json"
+          git push
