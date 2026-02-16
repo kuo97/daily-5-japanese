@@ -7,8 +7,7 @@
 <style>
 body {font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 20px;}
 h1 {font-size: 32px;}
-.card {border: 1px solid #ddd; padding: 20px; border-radius: 10px; margin-top: 20px;}
-a {text-decoration: none; color: blue;}
+.card {border: 1px solid #ddd; padding: 15px; border-radius: 10px; margin-top: 10px; cursor: pointer;}
 #content {margin-top: 30px;}
 </style>
 </head>
@@ -17,24 +16,36 @@ a {text-decoration: none; color: blue;}
 <h1>하루 5문장 일본어</h1>
 <p>매일 5문장 + 읽는법(한글/히라가나) + 뜻</p>
 
-<div class="card">
-  <h2>Day 001</h2>
-  <button onclick="loadMarkdown()">오늘의 5문장 보기</button>
-</div>
-
+<div id="dayList"></div>
 <div id="content"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
-function loadMarkdown() {
-  fetch('content/day-001.md')
+const days = [
+  "day-001.md"
+  // 앞으로 여기에 day-002.md, day-003.md 추가
+];
+
+const dayListDiv = document.getElementById("dayList");
+
+days.forEach(file => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerText = file.replace(".md","").toUpperCase();
+  card.onclick = () => loadMarkdown(file);
+  dayListDiv.appendChild(card);
+});
+
+function loadMarkdown(file) {
+  fetch("content/" + file)
     .then(response => response.text())
     .then(text => {
-      document.getElementById('content').innerHTML = marked.parse(text);
+      document.getElementById("content").innerHTML = marked.parse(text);
     });
 }
 </script>
 
 </body>
 </html>
+
