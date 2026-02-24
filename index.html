@@ -1,25 +1,416 @@
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>하루 5문장 일본어 | Daily 5 Japanese</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      :root {
+        --surface: #ffffff;
+        --surface-soft: #f9fbff;
+        --text: #1f2937;
+        --subtext: #5f6b7a;
+        --primary: #1a73e8;
+        --primary-soft: #e8f0ff;
+        --line: #dde5f1;
+      }
 
-<script>
-const dayListDiv = document.getElementById("dayList");
+      * {
+        box-sizing: border-box;
+      }
 
-fetch("content/days.json")
-  .then(res => res.json())
-  .then(days => {
-    days.forEach(file => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerText = file.replace(".md","").toUpperCase();
-      card.onclick = () => loadMarkdown(file);
-      dayListDiv.appendChild(card);
-    });
-  });
+      body {
+        margin: 0;
+        font-family: "Noto Sans KR", "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at 10% 10%, #e8f4ff 0%, #f3f7ff 38%, #eef5ff 100%);
+      }
 
-function loadMarkdown(file) {
-  fetch("content/" + file)
-    .then(res => res.text())
-    .then(text => {
-      document.getElementById("content").innerHTML = marked.parse(text);
-    });
-}
-</script>
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .hero {
+        border-radius: 24px;
+        padding: 28px;
+        background: linear-gradient(120deg, #0e4fbf 0%, #1a73e8 42%, #00a9a5 100%);
+        color: #fff;
+        box-shadow: 0 16px 40px rgba(14, 79, 191, 0.25);
+        margin-bottom: 20px;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 30px;
+      }
+
+      .hero p {
+        margin: 10px 0 0;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 18px;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 6px 24px rgba(16, 24, 40, 0.06);
+      }
+
+      .sidebar {
+        padding: 18px;
+      }
+
+      .sidebar-title {
+        margin: 0 0 6px;
+        font-size: 19px;
+      }
+
+      .sidebar-caption {
+        margin: 0 0 16px;
+        font-size: 13px;
+        color: var(--subtext);
+      }
+
+      #dayList {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .day-btn {
+        border: 1px solid var(--line);
+        background: var(--surface-soft);
+        color: #2a3543;
+        border-radius: 12px;
+        padding: 12px 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.18s ease;
+      }
+
+      .day-btn:hover {
+        transform: translateY(-1px);
+        border-color: #bdd1f2;
+        background: #f1f7ff;
+      }
+
+      .day-btn.active {
+        background: var(--primary-soft);
+        color: var(--primary);
+        border-color: #9dc1fa;
+      }
+
+      .content {
+        padding: 26px;
+        min-height: 640px;
+      }
+
+      .lesson-body h2 {
+        margin-top: 20px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #f3f8ff;
+        border: 1px solid #dce8ff;
+        color: #1b4c95;
+      }
+
+      .lesson-body ul {
+        margin: 10px 0 16px;
+        padding-left: 20px;
+      }
+
+      .lesson-body li {
+        margin: 6px 0;
+      }
+
+      .comments {
+        margin-top: 26px;
+        padding-top: 18px;
+        border-top: 1px dashed #cad8ef;
+      }
+
+      .comments h3 {
+        margin: 0 0 10px;
+      }
+
+      .comment-form {
+        display: grid;
+        gap: 8px;
+      }
+
+      .comment-form input,
+      .comment-form textarea {
+        width: 100%;
+        border: 1px solid #cdd8ea;
+        border-radius: 10px;
+        padding: 10px;
+        font: inherit;
+        background: #fff;
+      }
+
+      .comment-form button {
+        width: fit-content;
+        border: 0;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        padding: 10px 14px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .comment-list {
+        margin-top: 14px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .comment-item {
+        border: 1px solid #d9e3f4;
+        border-radius: 10px;
+        padding: 10px;
+        background: #fbfdff;
+      }
+
+      .comment-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--subtext);
+      }
+
+      .comment-delete {
+        border: 0;
+        background: transparent;
+        color: #d1495b;
+        cursor: pointer;
+        font-size: 12px;
+        padding: 0;
+      }
+
+      .helper {
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--subtext);
+      }
+
+      .error {
+        padding: 14px;
+        border-radius: 10px;
+        background: #ffecee;
+        color: #a20f2f;
+        font-weight: 600;
+      }
+
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        #dayList {
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 720px) {
+        .wrap {
+          padding: 14px;
+        }
+
+        .hero {
+          padding: 20px;
+        }
+
+        .hero h1 {
+          font-size: 24px;
+        }
+
+        #dayList {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hero">
+        <h1>하루 5문장 일본어</h1>
+        <p>DAY별 문장을 익히고, 아래 댓글로 복습 메모를 남겨보세요.</p>
+      </header>
+
+      <main class="layout">
+        <aside class="panel sidebar">
+          <h2 class="sidebar-title">학습 Day 선택</h2>
+          <p class="sidebar-caption">1일차~10일차 새 커리큘럼 · 중복 표현 없음</p>
+          <div id="dayList"></div>
+          <p class="helper">버튼을 누르면 오른쪽에 문장 + DAY 전용 댓글이 표시됩니다.</p>
+        </aside>
+
+        <article id="content" class="panel content">Day를 선택하면 문장이 표시됩니다.</article>
+      </main>
+    </div>
+
+    <script>
+      const dayListDiv = document.getElementById("dayList");
+      const contentDiv = document.getElementById("content");
+      let activeButton = null;
+
+      function renderError(message) {
+        contentDiv.innerHTML = `<p class="error">${message}</p>`;
+      }
+
+      function commentStorageKey(dayFile) {
+        return `daily5-comments-${dayFile}`;
+      }
+
+      function readComments(dayFile) {
+        try {
+          return JSON.parse(localStorage.getItem(commentStorageKey(dayFile)) || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      function writeComments(dayFile, comments) {
+        localStorage.setItem(commentStorageKey(dayFile), JSON.stringify(comments));
+      }
+
+      function renderCommentList(dayFile) {
+        const list = document.getElementById("commentList");
+        const comments = readComments(dayFile);
+
+        if (!comments.length) {
+          list.innerHTML = `<p class="helper">아직 댓글이 없어요. 첫 댓글을 남겨보세요.</p>`;
+          return;
+        }
+
+        list.innerHTML = comments
+          .map(
+            (comment, index) => `
+            <div class="comment-item">
+              <div class="comment-meta">
+                <strong>${comment.name}</strong>
+                <button class="comment-delete" data-index="${index}" type="button">삭제</button>
+              </div>
+              <p>${comment.text}</p>
+              <div class="helper">${comment.createdAt}</div>
+            </div>
+          `,
+          )
+          .join("");
+
+        list.querySelectorAll(".comment-delete").forEach((button) => {
+          button.addEventListener("click", () => {
+            const commentsData = readComments(dayFile);
+            commentsData.splice(Number(button.dataset.index), 1);
+            writeComments(dayFile, commentsData);
+            renderCommentList(dayFile);
+          });
+        });
+      }
+
+      function renderLessonAndComments(markdown, dayFile) {
+        contentDiv.innerHTML = `
+          <section class="lesson-body">${marked.parse(markdown)}</section>
+          <section class="comments">
+            <h3>💬 DAY 댓글</h3>
+            <form class="comment-form" id="commentForm">
+              <input id="commentName" type="text" placeholder="이름 (예: 민지)" maxlength="20" required />
+              <textarea id="commentText" rows="3" placeholder="오늘 배운 표현/질문/메모를 남겨보세요." maxlength="300" required></textarea>
+              <button type="submit">댓글 등록</button>
+            </form>
+            <div id="commentList" class="comment-list"></div>
+          </section>
+        `;
+
+        const form = document.getElementById("commentForm");
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const nameInput = document.getElementById("commentName");
+          const textInput = document.getElementById("commentText");
+          const name = nameInput.value.trim();
+          const text = textInput.value.trim();
+
+          if (!name || !text) {
+            return;
+          }
+
+          const comments = readComments(dayFile);
+          comments.unshift({
+            name,
+            text,
+            createdAt: new Date().toLocaleString("ko-KR"),
+          });
+          writeComments(dayFile, comments);
+
+          textInput.value = "";
+          renderCommentList(dayFile);
+        });
+
+        renderCommentList(dayFile);
+      }
+
+      function setActiveButton(button) {
+        if (activeButton) {
+          activeButton.classList.remove("active");
+        }
+        activeButton = button;
+        activeButton.classList.add("active");
+      }
+
+      function loadMarkdown(file, button) {
+        fetch(`content/${file}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`${file} 파일을 불러오지 못했습니다.`);
+            }
+            return response.text();
+          })
+          .then((markdown) => {
+            renderLessonAndComments(markdown, file);
+            if (button) {
+              setActiveButton(button);
+            }
+          })
+          .catch((error) => {
+            renderError(error.message);
+          });
+      }
+
+      fetch("content/days.json")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("days.json 파일을 불러오지 못했습니다.");
+          }
+          return response.json();
+        })
+        .then((days) => {
+          days.forEach((file, index) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "day-btn";
+            button.textContent = `DAY ${String(index + 1).padStart(2, "0")}`;
+            button.addEventListener("click", () => loadMarkdown(file, button));
+            dayListDiv.appendChild(button);
+
+            if (index === 0) {
+              loadMarkdown(file, button);
+            }
+          });
+        })
+        .catch((error) => {
+          renderError(error.message);
+        });
+    </script>
+  </body>
+</html>
